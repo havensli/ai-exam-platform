@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { loginWithAuthCode, redirectAfterLogin } from '@/lib/auth-client';
 
 function isDingTalkEnv(): boolean {
   if (typeof window === 'undefined') return false;
@@ -15,17 +16,6 @@ async function getDingTalkAuthCode(corpId: string): Promise<string> {
   // automatically until the JS bridge is ready (see dingtalk-jsapi README).
   const { code } = await dd.runtime.permission.requestAuthCode({ corpId });
   return code;
-}
-
-async function loginWithAuthCode(authCode: string): Promise<{ role: string }> {
-  const res = await fetch('/api/auth/dingtalk', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ authCode }),
-  });
-  const { data, error } = await res.json();
-  if (error) throw new Error(error);
-  return data;
 }
 
 function subscribeNever() {
@@ -57,7 +47,7 @@ export default function LoginPage() {
       })
       .then((code) => loginWithAuthCode(code))
       .then((data) => {
-        window.location.href = data?.role === 'employee' ? '/exams' : '/admin/exams';
+        redirectAfterLogin(data?.role);
       })
       .catch((e: unknown) => {
         setError(e instanceof Error ? e.message : '钉钉授权失败，请重试');
@@ -71,7 +61,7 @@ export default function LoginPage() {
     setError('');
     try {
       const data = await loginWithAuthCode(authCode);
-      window.location.href = data?.role === 'employee' ? '/exams' : '/admin/exams';
+      redirectAfterLogin(data?.role);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '登录失败，请重试');
     } finally {
@@ -99,7 +89,7 @@ export default function LoginPage() {
                   getDingTalkAuthCode(corpId)
                     .then((code) => loginWithAuthCode(code))
                     .then((data) => {
-                      window.location.href = data?.role === 'employee' ? '/exams' : '/admin/exams';
+                      redirectAfterLogin(data?.role);
                     })
                     .catch((e: unknown) => {
                       setError(e instanceof Error ? e.message : '钉钉授权失败');

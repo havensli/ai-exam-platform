@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
+import { loginWithAuthCode, redirectAfterLogin } from '@/lib/auth-client';
 
 declare global {
   interface Window {
@@ -29,9 +30,9 @@ const REDIRECT_URI = 'https://ai-exam-platform-two.vercel.app/auth/login';
 
 export default function QrLoginPage() {
   const [scriptReady, setScriptReady] = useState(false);
-  const [authCode, setAuthCode] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [failedAuthCode, setFailedAuthCode] = useState('');
 
   useEffect(() => {
     if (!scriptReady || !window.DTFrameLogin) return;
@@ -52,18 +53,20 @@ export default function QrLoginPage() {
           response_type: 'code',
           prompt: 'consent',
         },
-        (result) => setAuthCode(result.authCode),
+        (result) => {
+          setLoading(true);
+          loginWithAuthCode(result.authCode)
+            .then((data) => redirectAfterLogin(data?.role))
+            .catch((e: unknown) => {
+              setError(e instanceof Error ? e.message : '登录失败，请重试');
+              setFailedAuthCode(result.authCode);
+              setLoading(false);
+            });
+        },
         (errorMsg) => setError(errorMsg),
       );
     });
   }, [scriptReady]);
-
-  function copyCode() {
-    navigator.clipboard.writeText(authCode).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -72,23 +75,18 @@ export default function QrLoginPage() {
         onLoad={() => setScriptReady(true)}
       />
       <div className="bg-white rounded-xl shadow p-8 w-full max-w-sm text-center space-y-4">
-        <h1 className="text-xl font-bold text-gray-900">钉钉扫码登录测试</h1>
-        <p className="text-xs text-gray-400">用手机钉钉扫描下方二维码，扫码后这里会显示 authCode</p>
+        <h1 className="text-xl font-bold text-gray-900">钉钉扫码登录</h1>
+        {!loading && !error && (
+          <p className="text-xs text-gray-400">用手机钉钉扫描下方二维码，扫码确认后自动登录</p>
+        )}
         <div id={CONTAINER_ID} className="mx-auto" style={{ width: 300, height: 300 }} />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {authCode && (
+        {loading && <p className="text-gray-500 text-sm">扫码成功，正在登录...</p>}
+        {error && (
           <div className="space-y-2">
-            <p className="text-xs text-gray-500">authCode：</p>
-            <p className="text-xs font-mono break-all bg-gray-100 rounded p-2">{authCode}</p>
-            <button
-              onClick={copyCode}
-              className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition"
-            >
-              {copied ? '已复制' : '复制 authCode'}
-            </button>
-            <a href="/auth/login" className="block text-xs text-blue-600 hover:underline">
-              去登录页粘贴 →
-            </a>
+            <p className="text-red-500 text-sm">{error}</p>
+            {failedAuthCode && (
+              <p className="text-xs font-mono break-all bg-gray-100 rounded p-2">authCode: {failedAuthCode}</p>
+            )}
           </div>
         )}
       </div>
