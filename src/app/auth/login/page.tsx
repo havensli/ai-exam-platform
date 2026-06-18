@@ -132,6 +132,9 @@ export default function LoginPage() {
             {loading ? '登录中...' : '钉钉登录'}
           </button>
         </form>
+        <a href="/auth/qrlogin" className="block text-center text-xs text-blue-600 hover:underline mt-4">
+          没有授权码？扫码登录 →
+        </a>
       </div>
     </div>
   );

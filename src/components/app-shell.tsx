@@ -18,7 +18,11 @@ const ROLE_LABELS: Record<string, string> = {
 
 async function handleLogout() {
   await fetch('/api/auth/logout', { method: 'POST' });
-  window.location.href = '/auth/login';
+  // /auth/login only auto-logs in when opened inside the DingTalk client;
+  // outside of it (the desktop testing flow in use right now) it just shows
+  // a manual authCode paste box with no way to get one. /auth/qrlogin is the
+  // actual usable re-entry point for that case.
+  window.location.href = '/auth/qrlogin';
 }
 
 export function AppShell({
