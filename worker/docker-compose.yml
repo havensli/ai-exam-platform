@@ -1,0 +1,35 @@
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SANDBOX_IMAGE: exam-sandbox-python:latest
+      WORK_BASE_DIR: /tmp/sandbox_workdir
+      POLL_INTERVAL: "10"
+      MAX_RETRIES: "3"
+    volumes:
+      # Docker socket: worker needs to spawn child containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Shared temp dir: host path must match WORK_BASE_DIR so mounted repo
+      # paths resolve correctly when worker passes them to the child container
+      - /tmp/sandbox_workdir:/tmp/sandbox_workdir
+      # seccomp profile must be accessible by the Docker daemon (host path)
+      - ./sandbox/seccomp-profile.json:/etc/docker/seccomp/exam-sandbox.json:ro
+    restart: unless-stopped
+    deploy:
+      replicas: 2       # scale up during exam peak
+      resources:
+        limits:
+          cpus: "0.5"   # worker itself is lightweight; sandbox containers get their own limits
+          memory: 256M
+
+  # Pre-built sandbox base image (build once, reuse)
+  sandbox-builder:
+    build:
+      context: ./sandbox
+      dockerfile: Dockerfile.sandbox
+      target: python-sandbox
+    image: exam-sandbox-python:latest
+    profiles: ["build"]   # only runs when explicitly invoked: docker compose --profile build up

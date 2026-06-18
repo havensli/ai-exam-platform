@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+worker/.venv
+worker/**/__pycache__
+worker/.pytest_cache
 /.pnp
 .pnp.*
 .yarn/*

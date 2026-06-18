@@ -1,0 +1,51 @@
+{
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "syscalls": [
+    {
+      "names": [
+        "read", "write", "open", "openat", "openat2", "close",
+        "stat", "fstat", "lstat", "newfstatat", "statx", "statfs", "fstatfs",
+        "poll", "ppoll", "pselect6", "select",
+        "lseek", "mmap", "mprotect", "munmap", "brk", "mremap", "msync",
+        "madvise", "mincore", "memfd_create",
+        "rt_sigaction", "rt_sigprocmask", "rt_sigreturn", "rt_sigsuspend",
+        "sigaltstack", "tgkill", "kill",
+        "pread64", "pwrite64", "readv", "writev", "preadv", "pwritev",
+        "access", "faccessat", "readlink", "readlinkat",
+        "pipe", "pipe2", "dup", "dup2", "dup3",
+        "fcntl", "flock", "ioctl",
+        "fsync", "fdatasync", "sync",
+        "truncate", "ftruncate",
+        "getcwd", "chdir", "fchdir",
+        "mkdir", "mkdirat", "rmdir",
+        "creat", "unlink", "unlinkat", "rename", "renameat",
+        "chmod", "fchmod", "fchmodat",
+        "umask", "utime", "utimes",
+        "getdents", "getdents64",
+        "mknod", "mknodat",
+        "sendfile", "splice", "copy_file_range",
+        "inotify_init", "inotify_init1", "inotify_add_watch", "inotify_rm_watch",
+        "epoll_create", "epoll_create1", "epoll_wait", "epoll_ctl",
+        "eventfd2",
+        "fork", "vfork", "clone", "execve", "execveat",
+        "wait4", "waitpid",
+        "exit", "exit_group",
+        "getpid", "getppid", "getpgrp", "getpgid", "getsid",
+        "getuid", "getgid", "geteuid", "getegid", "getgroups",
+        "gettid", "getitimer", "setitimer", "alarm",
+        "setuid", "setgid",
+        "gettimeofday", "clock_gettime", "clock_getres", "clock_nanosleep",
+        "nanosleep", "times", "uname",
+        "getrlimit", "setrlimit", "getrusage", "sysinfo",
+        "getpriority", "setpriority",
+        "prctl", "arch_prctl",
+        "futex", "set_robust_list", "get_robust_list",
+        "set_tid_address", "restart_syscall",
+        "sched_yield", "sched_getaffinity",
+        "getrandom",
+        "socketpair"
+      ],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}
