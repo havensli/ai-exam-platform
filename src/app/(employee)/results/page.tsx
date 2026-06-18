@@ -34,7 +34,7 @@ export default function MyResultsPage() {
           <Link
             key={item.submissionId}
             href={`/results/${item.submissionId}`}
-            className="block bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:border-blue-300 transition"
+            className="block bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:border-brand-300 transition"
           >
             <div className="flex items-center justify-between gap-2">
               <h2 className="font-semibold text-gray-900">{item.examTitle}</h2>

@@ -73,8 +73,8 @@ export default function ReviewDetailPage() {
             <InfoRow label="姓名" value={detail.employee.name} />
             <InfoRow label="职级" value={detail.employee.level} />
             <InfoRow label="部门" value={detail.employee.department} />
-            <InfoRow label="部署地址" value={<a href={detail.submission.deployUrl} target="_blank" rel="noreferrer" className="text-blue-600 text-xs break-all hover:underline">{detail.submission.deployUrl}</a>} />
-            <InfoRow label="仓库地址" value={<a href={detail.submission.repoUrl} target="_blank" rel="noreferrer" className="text-blue-600 text-xs break-all hover:underline">{detail.submission.repoUrl}</a>} />
+            <InfoRow label="部署地址" value={<a href={detail.submission.deployUrl} target="_blank" rel="noreferrer" className="text-brand-600 text-xs break-all hover:underline">{detail.submission.deployUrl}</a>} />
+            <InfoRow label="仓库地址" value={<a href={detail.submission.repoUrl} target="_blank" rel="noreferrer" className="text-brand-600 text-xs break-all hover:underline">{detail.submission.repoUrl}</a>} />
           </Card>
 
           {detail.submission.assumptionText && (
@@ -119,7 +119,7 @@ export default function ReviewDetailPage() {
                       onChange={(e) => setScores((s) => ({ ...s, [g.rubricItemId]: Number(e.target.value) }))}
                       min={0}
                       max={Number(g.maxScore)}
-                      className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand-500 outline-none"
                     />
                     <span className="text-xs text-gray-400">/ {g.maxScore}</span>
                   </div>
@@ -139,7 +139,7 @@ export default function ReviewDetailPage() {
             <textarea
               value={overallComment}
               onChange={(e) => setOverallComment(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[80px] resize-none focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[80px] resize-none focus:ring-2 focus:ring-brand-500 outline-none"
               placeholder="可选：整体评价备注..."
             />
           </Card>

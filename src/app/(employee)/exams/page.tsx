@@ -38,7 +38,7 @@ export default function ExamsPage() {
     <div className="max-w-2xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">我的考试</h1>
-        <Link href="/results" className="text-sm text-blue-600 hover:underline">
+        <Link href="/results" className="text-sm text-brand-600 hover:underline">
           历史成绩 →
         </Link>
       </div>
@@ -61,7 +61,7 @@ export default function ExamsPage() {
             {exam.status === 'published' && (
               <Link
                 href={`/exams/${exam.id}/submit`}
-                className="shrink-0 bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700 transition"
+                className="shrink-0 bg-brand-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-brand-700 transition"
               >
                 提交
               </Link>

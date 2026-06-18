@@ -36,12 +36,12 @@ export default function ReviewListPage() {
               <p className="text-xs text-gray-400 mt-1">{new Date(submission.submittedAt).toLocaleString('zh-CN')}</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${submission.status === 'ai_graded' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${submission.status === 'ai_graded' ? 'bg-brand-100 text-brand-700' : 'bg-yellow-100 text-yellow-700'}`}>
                 {submission.status === 'ai_graded' ? 'AI 初评完成' : '待处理'}
               </span>
               <Link
                 href={`/admin/review/${submission.id}`}
-                className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition"
+                className="text-sm bg-brand-600 text-white px-4 py-1.5 rounded-lg hover:bg-brand-700 transition"
               >
                 复核
               </Link>

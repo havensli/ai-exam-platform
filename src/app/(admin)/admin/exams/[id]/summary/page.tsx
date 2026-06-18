@@ -88,7 +88,7 @@ export default function ExamSummaryPage() {
                 <span className="w-16 text-gray-500 shrink-0">{b.bucket}</span>
                 <div className="flex-1 bg-gray-100 rounded h-4 overflow-hidden">
                   <div
-                    className="bg-blue-500 h-4"
+                    className="bg-brand-500 h-4"
                     style={{ width: `${(b.count / maxBucketCount) * 100}%` }}
                   />
                 </div>

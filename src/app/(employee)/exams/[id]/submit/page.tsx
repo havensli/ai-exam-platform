@@ -92,7 +92,7 @@ export default function SubmitPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+          className="w-full bg-brand-600 text-white rounded-lg py-2.5 font-medium hover:bg-brand-700 disabled:opacity-50 transition"
         >
           {submitting ? '提交中...' : '提交作业'}
         </button>
@@ -102,7 +102,7 @@ export default function SubmitPage() {
   );
 }
 
-const input = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none';
+const input = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

@@ -70,7 +70,7 @@ export default function ResultsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">评分结果</h2>
-            <span className="text-2xl font-bold text-blue-600">{total} / {maxTotal}</span>
+            <span className="text-2xl font-bold text-brand-600">{total} / {maxTotal}</span>
           </div>
           {data.aiGradingResults.map((r, i) => (
             <div key={i} className="border-t border-gray-100 pt-3">
@@ -107,11 +107,11 @@ export default function ResultsPage() {
               <textarea
                 value={appealReason}
                 onChange={(e) => setAppealReason(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[80px] resize-none outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[80px] resize-none outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="请详细说明你认为评分有误的原因..."
               />
               <div className="flex gap-2">
-                <button onClick={submitAppeal} className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition">
+                <button onClick={submitAppeal} className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700 transition">
                   提交申诉
                 </button>
                 <button onClick={() => setShowAppeal(false)} className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-2 text-sm hover:bg-gray-50 transition">
@@ -135,7 +135,7 @@ export default function ResultsPage() {
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     pending: { label: '待阅卷', cls: 'bg-yellow-100 text-yellow-800' },
-    ai_graded: { label: 'AI 初评完成', cls: 'bg-blue-100 text-blue-800' },
+    ai_graded: { label: 'AI 初评完成', cls: 'bg-brand-100 text-brand-800' },
     completed: { label: '已出成绩', cls: 'bg-green-100 text-green-800' },
   };
   const { label, cls } = map[status] ?? { label: status, cls: 'bg-gray-100 text-gray-600' };

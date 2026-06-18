@@ -224,7 +224,7 @@ function NewExamForm() {
         ))}
         <button
           onClick={() => setRubricItems((prev) => [...prev, emptyItem()])}
-          className="w-full border-2 border-dashed border-gray-300 text-gray-500 rounded-lg py-2 text-sm hover:border-blue-400 hover:text-blue-500 transition"
+          className="w-full border-2 border-dashed border-gray-300 text-gray-500 rounded-lg py-2 text-sm hover:border-brand-400 hover:text-brand-500 transition"
         >
           + 添加考点
         </button>
@@ -292,7 +292,7 @@ function NewExamForm() {
         <button onClick={() => save(false)} disabled={saving} className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-2.5 font-medium hover:bg-gray-50 disabled:opacity-50 transition">
           保存草稿
         </button>
-        <button onClick={() => save(true)} disabled={saving} className="flex-1 bg-blue-600 text-white rounded-lg py-2.5 font-medium hover:bg-blue-700 disabled:opacity-50 transition">
+        <button onClick={() => save(true)} disabled={saving} className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 font-medium hover:bg-brand-700 disabled:opacity-50 transition">
           {saving ? '处理中...' : '保存并发布'}
         </button>
       </div>
@@ -300,7 +300,7 @@ function NewExamForm() {
   );
 }
 
-const inp = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none';
+const inp = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

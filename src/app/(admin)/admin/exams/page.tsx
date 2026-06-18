@@ -43,7 +43,7 @@ export default function AdminExamsPage() {
         <h1 className="text-xl font-bold text-gray-900">考试管理</h1>
         <Link
           href="/admin/exams/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition"
         >
           + 新建考试
         </Link>

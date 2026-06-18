@@ -96,7 +96,7 @@ export default function LoginPage() {
                       setLoading(false);
                     });
                 }}
-                className="w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 transition"
+                className="w-full bg-brand-600 text-white rounded-lg py-2 font-medium hover:bg-brand-700 transition"
               >
                 重新授权
               </button>
@@ -118,7 +118,7 @@ export default function LoginPage() {
             <input
               value={authCode}
               onChange={(e) => setAuthCode(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
               placeholder="粘贴钉钉授权码"
               required
             />
@@ -127,12 +127,12 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white rounded-lg py-2 font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+            className="w-full bg-brand-600 text-white rounded-lg py-2 font-medium hover:bg-brand-700 disabled:opacity-50 transition"
           >
             {loading ? '登录中...' : '钉钉登录'}
           </button>
         </form>
-        <a href="/auth/qrlogin" className="block text-center text-xs text-blue-600 hover:underline mt-4">
+        <a href="/auth/qrlogin" className="block text-center text-xs text-brand-600 hover:underline mt-4">
           没有授权码？扫码登录 →
         </a>
       </div>

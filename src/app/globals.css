@@ -12,6 +12,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Brand palette anchored on #0fc6c2 (brand-600) — used in place of the
+   default Tailwind blue-* scale throughout the app for consistency. */
+@theme {
+  --color-brand-50: #ecfefd;
+  --color-brand-100: #d4fcfb;
+  --color-brand-200: #aef9f7;
+  --color-brand-300: #7af5f2;
+  --color-brand-400: #33f0eb;
+  --color-brand-500: #11e4df;
+  --color-brand-600: #0fc6c2;
+  --color-brand-700: #0ca19e;
+  --color-brand-800: #0a8582;
+  --color-brand-900: #086866;
+  --color-brand-950: #053e3c;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

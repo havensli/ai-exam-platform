@@ -41,8 +41,8 @@ export function AppShell({
   return (
     <div className="min-h-screen flex bg-gray-50">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="h-14 flex items-center px-4 border-b border-gray-200">
-          <span className="font-bold text-blue-600 text-lg">AI 考试系统</span>
+        <div className="h-14 flex items-center px-4 bg-brand-600">
+          <span className="font-bold text-white text-lg">AI 考试系统</span>
         </div>
         <nav className="flex-1 py-3 space-y-1">
           {navItems.map((item) => {
@@ -52,7 +52,7 @@ export function AppShell({
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-2 px-4 py-2 text-sm mx-2 rounded-lg transition ${
-                  active ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-100'
+                  active ? 'bg-brand-50 text-brand-600 font-medium' : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <span>{item.icon}</span>
