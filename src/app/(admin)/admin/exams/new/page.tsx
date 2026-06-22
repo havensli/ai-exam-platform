@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { parseExamMarkdown } from '@/lib/examMarkdownImport';
 
 interface RubricItem {
   name: string;
@@ -59,6 +60,7 @@ function NewExamForm() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState('');
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
 
   useEffect(() => {
     fetch('/api/employees')
@@ -106,11 +108,41 @@ function NewExamForm() {
     setThresholds((prev) => prev.map((t) => t.level === level ? { ...t, passScore: score } : t));
   }
 
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const parsed = parseExamMarkdown(String(reader.result ?? ''));
+      if (!parsed.title && parsed.rubricItems.length === 0) {
+        setError('无法解析该 Markdown 文件，请检查格式是否符合考试题目模板');
+        return;
+      }
+      setError('');
+      setImportWarnings(parsed.warnings);
+      if (parsed.title) setTitle(parsed.title);
+      if (parsed.background) setBackground(parsed.background);
+      if (parsed.rubricItems.length) setRubricItems(parsed.rubricItems);
+      if (parsed.thresholds.length) setThresholds(parsed.thresholds);
+    };
+    reader.onerror = () => setError('读取文件失败，请重试');
+    reader.readAsText(file);
+  }
+
   const weightSum = rubricItems.reduce((s, i) => s + (Number(i.weight) || 0), 0);
 
   async function save(publish = false) {
     if (weightSum !== 100) {
       setError(`考点权重合计为 ${weightSum}，必须等于 100`);
+      return;
+    }
+    const invalidIndex = rubricItems.findIndex(
+      (item) => !item.name.trim() || !item.criteriaText.trim() || !Number.isInteger(item.weight) || item.weight < 1
+    );
+    if (invalidIndex !== -1) {
+      setError(`考点 ${invalidIndex + 1} 信息不完整：名称、评分细则不能为空，权重分必须为 ≥1 的整数`);
       return;
     }
     setSaving(true);
@@ -165,6 +197,21 @@ function NewExamForm() {
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
       <h1 className="text-xl font-bold text-gray-900">{isEditMode ? '编辑考试' : '新建考试'}</h1>
+
+      {!isEditMode && (
+        <Section title="从 Markdown 模板导入">
+          <p className="text-xs text-gray-500">
+            上传符合「考试题目」模板格式的 .md 文件，自动填充标题、背景、考点权重与职级合格线。
+            Run / Install 命令、目标员工范围模板中不包含，导入后请手动核对再保存。
+          </p>
+          <input type="file" accept=".md,.markdown,text/markdown" onChange={handleImportFile} className="text-sm" />
+          {importWarnings.length > 0 && (
+            <ul className="text-xs text-amber-600 list-disc pl-4 space-y-0.5">
+              {importWarnings.map((w, i) => <li key={i}>{w}</li>)}
+            </ul>
+          )}
+        </Section>
+      )}
 
       <Section title="基本信息">
         <Field label="考试标题 *">
