@@ -145,6 +145,10 @@ function NewExamForm() {
       setError(`考点 ${invalidIndex + 1} 信息不完整：名称、评分细则不能为空，权重分必须为 ≥1 的整数`);
       return;
     }
+    if (!deadline || Number.isNaN(new Date(deadline).getTime())) {
+      setError('请填写截止时间');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
