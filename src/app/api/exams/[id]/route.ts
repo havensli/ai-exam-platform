@@ -93,3 +93,24 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   await audit(session.employeeId, 'exam.update', 'exam', id, { before: exam, after: updated });
   return ok(updated);
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getSession(req);
+  if (!session || !['system_admin', 'exam_creator'].includes(session.role)) {
+    return err('Forbidden', 403);
+  }
+
+  const { id } = await params;
+  const exam = await db.query.exams.findFirst({ where: eq(exams.id, id) });
+  if (!exam) return err('Not found', 404);
+  if (exam.status !== 'draft') return err('Only draft exams can be deleted', 400);
+
+  await db.batch([
+    db.delete(rubricItems).where(eq(rubricItems.examId, id)),
+    db.delete(levelThresholds).where(eq(levelThresholds.examId, id)),
+    db.delete(exams).where(eq(exams.id, id)),
+  ]);
+
+  await audit(session.employeeId, 'exam.delete', 'exam', id, { deleted: exam });
+  return ok({ deleted: true });
+}

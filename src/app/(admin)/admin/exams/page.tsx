@@ -35,6 +35,14 @@ export default function AdminExamsPage() {
     window.location.href = `/admin/exams/new?examId=${data.id}`;
   }
 
+  async function remove(id: string, title: string) {
+    if (!window.confirm(`确认删除考试「${title}」？此操作不可恢复。`)) return;
+    const res = await fetch(`/api/exams/${id}`, { method: 'DELETE' });
+    const { error: e } = await res.json();
+    if (e) { window.alert(e); return; }
+    setExams((prev) => prev.filter((exam) => exam.id !== id));
+  }
+
   if (loading) return <div className="p-8 text-center text-gray-500">加载中...</div>;
 
   return (
@@ -67,12 +75,26 @@ export default function AdminExamsPage() {
             </div>
             <div className="flex gap-2 shrink-0">
               {exam.status === 'draft' && (
-                <button
-                  onClick={() => publish(exam.id)}
-                  className="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition"
-                >
-                  发布
-                </button>
+                <>
+                  <button
+                    onClick={() => publish(exam.id)}
+                    className="text-sm bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition"
+                  >
+                    发布
+                  </button>
+                  <Link
+                    href={`/admin/exams/new?examId=${exam.id}`}
+                    className="text-sm border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    编辑
+                  </Link>
+                  <button
+                    onClick={() => remove(exam.id, exam.title)}
+                    className="text-sm border border-red-300 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
+                  >
+                    删除
+                  </button>
+                </>
               )}
               <Link
                 href={`/admin/exams/${exam.id}/summary`}
