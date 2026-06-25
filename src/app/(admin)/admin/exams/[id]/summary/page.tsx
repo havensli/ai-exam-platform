@@ -12,17 +12,51 @@ interface FailedNotification {
   sentAt: string;
 }
 
+interface RosterRow {
+  employeeId: string;
+  name: string;
+  level: string;
+  submissionId: string | null;
+  submittedAt: string | null;
+  status: string;
+  taskStatus: string | null;
+  taskError: string | null;
+  aiScore: number | null;
+  finalScore: number | null;
+}
+
+const RETRIGGERABLE_STATUSES = ['pending', 'processing', 'sandbox_done'];
+
+const ROSTER_STATUS_LABELS: Record<string, { label: string; cls: string }> = {
+  not_submitted: { label: '未提交', cls: 'bg-gray-100 text-gray-500' },
+  pending: { label: '待处理', cls: 'bg-yellow-100 text-yellow-700' },
+  processing: { label: '沙箱执行中', cls: 'bg-blue-100 text-blue-700' },
+  sandbox_done: { label: '待 AI 评分', cls: 'bg-blue-100 text-blue-700' },
+  ai_graded: { label: 'AI 初评完成', cls: 'bg-brand-100 text-brand-700' },
+  review_pending: { label: '待人工复核', cls: 'bg-orange-100 text-orange-700' },
+  completed: { label: '已完成', cls: 'bg-green-100 text-green-700' },
+};
+
 export default function ExamSummaryPage() {
   const { id } = useParams<{ id: string }>();
   const [summary, setSummary] = useState<ExamSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [failedNotifications, setFailedNotifications] = useState<FailedNotification[]>([]);
   const [resending, setResending] = useState<string | null>(null);
+  const [roster, setRoster] = useState<RosterRow[]>([]);
+  const [retriggering, setRetriggering] = useState<string | null>(null);
 
   function loadFailedNotifications() {
     fetch(`/api/exams/${id}/notifications`)
       .then((r) => r.json())
       .then(({ data }) => setFailedNotifications(data ?? []))
+      .catch(() => {});
+  }
+
+  function loadRoster() {
+    fetch(`/api/exams/${id}/roster`)
+      .then((r) => r.json())
+      .then(({ data }) => setRoster(data ?? []))
       .catch(() => {});
   }
 
@@ -32,8 +66,21 @@ export default function ExamSummaryPage() {
       .then(({ data }) => setSummary(data))
       .finally(() => setLoading(false));
     loadFailedNotifications();
+    loadRoster();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  async function retrigger(submissionId: string) {
+    setRetriggering(submissionId);
+    try {
+      const res = await fetch(`/api/submissions/${submissionId}/regrade`, { method: 'POST' });
+      const { error: e } = await res.json();
+      if (e) { window.alert(e); return; }
+      loadRoster();
+    } finally {
+      setRetriggering(null);
+    }
+  }
 
   async function resend(employeeId: string) {
     setResending(employeeId);
@@ -142,6 +189,58 @@ export default function ExamSummaryPage() {
               </div>
             ))}
           </div>
+        )}
+      </Card>
+
+      <Card title="参与人员明细">
+        {roster.length === 0 ? (
+          <p className="text-xs text-gray-400">暂无数据</p>
+        ) : (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-gray-400 text-left">
+                <th className="font-normal pb-1">姓名</th>
+                <th className="font-normal pb-1">职级</th>
+                <th className="font-normal pb-1">状态</th>
+                <th className="font-normal pb-1">AI 初评分</th>
+                <th className="font-normal pb-1">最终分</th>
+                <th className="font-normal pb-1"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {roster.map((r) => {
+                const statusInfo = ROSTER_STATUS_LABELS[r.status] ?? { label: r.status, cls: 'bg-gray-100 text-gray-500' };
+                const canRetrigger = r.submissionId && RETRIGGERABLE_STATUSES.includes(r.status);
+                return (
+                  <tr key={r.employeeId} className="border-t border-gray-100">
+                    <td className="py-1.5 text-gray-700">{r.name}</td>
+                    <td className="py-1.5 text-gray-700">{r.level}</td>
+                    <td className="py-1.5">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusInfo.cls}`}>
+                        {statusInfo.label}
+                      </span>
+                      {r.taskError && (
+                        <span className="ml-1 text-red-500" title={r.taskError}>⚠️</span>
+                      )}
+                    </td>
+                    <td className="py-1.5 text-gray-700">{r.aiScore ?? '—'}</td>
+                    <td className="py-1.5 text-gray-700">{r.finalScore ?? '—'}</td>
+                    <td className="py-1.5 text-right">
+                      {canRetrigger && (
+                        <button
+                          onClick={() => retrigger(r.submissionId!)}
+                          disabled={retriggering === r.submissionId}
+                          className="text-xs bg-orange-500 text-white px-2.5 py-1 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition"
+                        >
+                          {retriggering === r.submissionId ? '触发中...' : '手动触发阅卷'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         )}
       </Card>
 

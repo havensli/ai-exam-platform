@@ -11,7 +11,17 @@ interface Detail {
   sandbox: Array<{ phase: string; returncode: number; stdout: string; stderr: string; timedOut: boolean; oomKilled: boolean }>;
   auto: Array<{ checkName: string; passed: boolean; rawOutput: string }>;
   plagiarism: Array<{ checkType: string; score: string; flagged: boolean; detail: unknown }>;
+  rubric: Array<{ id: string; name: string; criteriaText: string }>;
 }
+
+const ANOMALY_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'none', label: '无异常' },
+  { value: 'sandbox_failure', label: '沙箱执行失败' },
+  { value: 'plagiarism_suspected', label: '疑似抄袭' },
+  { value: 'network_issue', label: '网络问题' },
+  { value: 'missing_materials', label: '材料缺失' },
+  { value: 'other', label: '其他' },
+];
 
 export default function ReviewDetailPage() {
   const { submissionId } = useParams<{ submissionId: string }>();
@@ -20,6 +30,8 @@ export default function ReviewDetailPage() {
   const [loading, setLoading] = useState(true);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [overallComment, setOverallComment] = useState('');
+  const [anomalyType, setAnomalyType] = useState('none');
+  const [anomalyNote, setAnomalyNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -47,7 +59,7 @@ export default function ReviewDetailPage() {
     await fetch(`/api/review/${submissionId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ finalScore, adjustedItems, comment: overallComment }),
+      body: JSON.stringify({ finalScore, adjustedItems, comment: overallComment, anomalyType, anomalyNote }),
     });
     setSubmitting(false);
     router.push('/admin/review');
@@ -59,6 +71,7 @@ export default function ReviewDetailPage() {
   const finalScore = Object.values(scores).reduce((a, b) => a + b, 0);
   const maxScore = detail.grading.reduce((a, g) => a + Number(g.maxScore), 0);
   const flagged = detail.plagiarism.filter((p) => p.flagged);
+  const rubricById = new Map(detail.rubric.map((r) => [r.id, r]));
 
   return (
     <div className="max-w-6xl mx-auto p-4">
@@ -108,30 +121,36 @@ export default function ReviewDetailPage() {
         {/* Middle: grading */}
         <div className="space-y-4">
           <Card title={`逐项评分（当前合计：${finalScore} / ${maxScore}）`}>
-            {detail.grading.map((g, i) => (
-              <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">考点 {i + 1}</span>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      value={scores[g.rubricItemId] ?? Number(g.score)}
-                      onChange={(e) => setScores((s) => ({ ...s, [g.rubricItemId]: Number(e.target.value) }))}
-                      min={0}
-                      max={Number(g.maxScore)}
-                      className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand-500 outline-none"
-                    />
-                    <span className="text-xs text-gray-400">/ {g.maxScore}</span>
+            {detail.grading.map((g, i) => {
+              const rubric = rubricById.get(g.rubricItemId);
+              return (
+                <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">{rubric?.name ?? `考点 ${i + 1}`}</span>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        value={scores[g.rubricItemId] ?? Number(g.score)}
+                        onChange={(e) => setScores((s) => ({ ...s, [g.rubricItemId]: Number(e.target.value) }))}
+                        min={0}
+                        max={Number(g.maxScore)}
+                        className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand-500 outline-none"
+                      />
+                      <span className="text-xs text-gray-400">/ {g.maxScore}</span>
+                    </div>
                   </div>
+                  {rubric?.criteriaText && (
+                    <p className="text-xs text-gray-400 bg-gray-50 rounded p-2">评分细则：{rubric.criteriaText}</p>
+                  )}
+                  {g.reasoning && <p className="text-xs text-gray-500">AI 评语：{g.reasoning}</p>}
+                  {scores[g.rubricItemId] !== Number(g.score) && (
+                    <p className="text-xs text-orange-600 font-medium">
+                      AI 原始分：{g.score} → 已修改为 {scores[g.rubricItemId]}
+                    </p>
+                  )}
                 </div>
-                {g.reasoning && <p className="text-xs text-gray-500">{g.reasoning}</p>}
-                {scores[g.rubricItemId] !== Number(g.score) && (
-                  <p className="text-xs text-orange-600 font-medium">
-                    AI 原始分：{g.score} → 已修改为 {scores[g.rubricItemId]}
-                  </p>
-                )}
-              </div>
-            ))}
+              );
+            })}
             {detail.grading.length === 0 && <p className="text-xs text-gray-400">AI 评分未完成</p>}
           </Card>
 
@@ -142,6 +161,26 @@ export default function ReviewDetailPage() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[80px] resize-none focus:ring-2 focus:ring-brand-500 outline-none"
               placeholder="可选：整体评价备注..."
             />
+          </Card>
+
+          <Card title="异常原因">
+            <select
+              value={anomalyType}
+              onChange={(e) => setAnomalyType(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+            >
+              {ANOMALY_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+            {anomalyType !== 'none' && (
+              <textarea
+                value={anomalyNote}
+                onChange={(e) => setAnomalyNote(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[60px] resize-none focus:ring-2 focus:ring-brand-500 outline-none"
+                placeholder="请说明异常详情..."
+              />
+            )}
           </Card>
 
           <button

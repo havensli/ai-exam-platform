@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import {
   submissions, sandboxRunResults, aiGradingResults, autoCheckResults,
-  plagiarismChecks, humanReviews, employees, exams, levelThresholds,
+  plagiarismChecks, humanReviews, employees, exams, levelThresholds, rubricItems,
 } from '@/db/schema';
 import { getSession, isTokenRevoked } from '@/lib/auth';
 import { ok, err, audit } from '@/lib/api';
@@ -29,7 +29,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ subm
     db.select().from(plagiarismChecks).where(eq(plagiarismChecks.submissionId, submissionId)),
   ]);
 
-  return ok({ submission: sub, employee, exam, sandbox, auto, grading, plagiarism });
+  const rubric = await db.select().from(rubricItems).where(eq(rubricItems.examId, sub.examId));
+
+  return ok({ submission: sub, employee, exam, sandbox, auto, grading, plagiarism, rubric });
 }
 
 const reviewSchema = z.object({
@@ -40,6 +42,8 @@ const reviewSchema = z.object({
     reason: z.string(),
   })).optional(),
   comment: z.string().optional(),
+  anomalyType: z.enum(['none', 'sandbox_failure', 'plagiarism_suspected', 'network_issue', 'missing_materials', 'other']).optional(),
+  anomalyNote: z.string().optional(),
 });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ submissionId: string }> }) {
@@ -64,6 +68,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ sub
       finalScore: String(body.data.finalScore),
       adjustedItems: body.data.adjustedItems ?? null,
       comment: body.data.comment ?? null,
+      anomalyType: body.data.anomalyType ?? 'none',
+      anomalyNote: body.data.anomalyNote ?? null,
     })
     .onConflictDoNothing()
     .returning();

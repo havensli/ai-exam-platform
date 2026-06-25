@@ -6,6 +6,14 @@ import { getSession } from '@/lib/auth';
 import { err } from '@/lib/api';
 import { eq, inArray } from 'drizzle-orm';
 
+const ANOMALY_LABELS: Record<string, string> = {
+  sandbox_failure: '沙箱执行失败',
+  plagiarism_suspected: '疑似抄袭',
+  network_issue: '网络问题',
+  missing_materials: '材料缺失',
+  other: '其他',
+};
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession(req);
   if (!session || !['system_admin', 'exam_creator', 'reviewer'].includes(session.role)) {
@@ -61,6 +69,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     { header: '人工复核最终分', key: 'finalScore', width: 16 },
     { header: '是否通过', key: 'passed', width: 10 },
     { header: '复核意见', key: 'comment', width: 30 },
+    { header: '异常原因', key: 'anomalyType', width: 14 },
+    { header: '异常备注', key: 'anomalyNote', width: 30 },
   ];
 
   for (const sub of subs) {
@@ -78,6 +88,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       finalScore: finalScore ?? '',
       passed,
       comment: review?.comment ?? '',
+      anomalyType: review && review.anomalyType !== 'none' ? ANOMALY_LABELS[review.anomalyType] ?? review.anomalyType : '',
+      anomalyNote: review?.anomalyNote ?? '',
     });
   }
 

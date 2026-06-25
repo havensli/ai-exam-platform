@@ -27,6 +27,9 @@ export const plagiarismCheckTypeEnum = pgEnum('plagiarism_check_type', [
 ]);
 export const employeeStatusEnum = pgEnum('employee_status', ['active', 'disabled', 'left']);
 export const examAssignmentStatusEnum = pgEnum('exam_assignment_status', ['assigned', 'voided']);
+export const reviewAnomalyTypeEnum = pgEnum('review_anomaly_type', [
+  'none', 'sandbox_failure', 'plagiarism_suspected', 'network_issue', 'missing_materials', 'other',
+]);
 
 export const employees = pgTable('employees', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -160,6 +163,8 @@ export const humanReviews = pgTable('human_reviews', {
   finalScore: numeric('final_score', { precision: 5, scale: 2 }).notNull(),
   adjustedItems: jsonb('adjusted_items'),
   comment: text('comment'),
+  anomalyType: reviewAnomalyTypeEnum('anomaly_type').notNull().default('none'),
+  anomalyNote: text('anomaly_note'),
   completedAt: timestamp('completed_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
