@@ -3,8 +3,9 @@ import { AppShell, type NavItem } from '@/components/app-shell';
 
 const ADMIN_NAV: NavItem[] = [
   { href: '/admin/exams', label: '考试管理', icon: '📝' },
-  { href: '/admin/grading', label: '待阅卷', icon: '🧪' },
+  { href: '/admin/grading', label: '阅卷管理', icon: '🧪' },
   { href: '/admin/review', label: '待复核', icon: '✅' },
+  { href: '/admin/settings', label: '系统设置', icon: '⚙️' },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

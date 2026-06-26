@@ -59,6 +59,21 @@ def fetch_sandbox_results(conn, submission_id: str) -> list[dict[str, Any]]:
         return [dict(r) for r in cur.fetchall()]
 
 
+def get_system_setting(conn, key: str) -> str | None:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(
+            'SELECT value, encrypted FROM system_settings WHERE key = %s',
+            (key,)
+        )
+        row = cur.fetchone()
+    if not row:
+        return None
+    if row['encrypted']:
+        from .crypto import decrypt_token
+        return decrypt_token(row['value'])
+    return row['value']
+
+
 def fetch_auto_check_results(conn, submission_id: str) -> list[dict[str, Any]]:
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute("""
@@ -198,6 +213,9 @@ def grade_submission(conn, submission_id: str, repo_path: str) -> GradingReport:
         auto_check_results=auto_results,
     )
 
+    ai_api_key = get_system_setting(conn, 'ai_grading_api_key')
+    ai_provider = get_system_setting(conn, 'ai_grading_provider') or 'anthropic'
+
     report = asyncio.run(run_grading(
         submission_id=submission_id,
         prompt_version_id=str(prompt_version['id']),
@@ -205,6 +223,8 @@ def grade_submission(conn, submission_id: str, repo_path: str) -> GradingReport:
         repo_path=repo_path,
         sandbox_results=sandbox_results,
         auto_check_results=auto_results,
+        api_key=ai_api_key,
+        provider=ai_provider,
     ))
 
     report = validate_and_warn_evidence(report, repo_path)

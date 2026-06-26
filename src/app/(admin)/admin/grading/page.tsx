@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface PendingItem {
   submissionId: string;
@@ -15,10 +16,13 @@ interface PendingItem {
   taskRetryCount: number;
 }
 
+const RETRIGGERABLE = new Set(['pending', 'processing', 'sandbox_done']);
+
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  pending: { label: '待处理', cls: 'bg-yellow-100 text-yellow-700' },
-  processing: { label: '沙箱执行中', cls: 'bg-blue-100 text-blue-700' },
-  sandbox_done: { label: '待 AI 评分', cls: 'bg-blue-100 text-blue-700' },
+  pending: { label: '阅卷中', cls: 'bg-yellow-100 text-yellow-700' },
+  processing: { label: '阅卷中', cls: 'bg-blue-100 text-blue-700' },
+  sandbox_done: { label: '阅卷中', cls: 'bg-blue-100 text-blue-700' },
+  ai_graded: { label: '已阅卷待复核', cls: 'bg-green-100 text-green-700' },
 };
 
 export default function GradingPendingPage() {
@@ -34,9 +38,7 @@ export default function GradingPendingPage() {
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function trigger(submissionId: string) {
     setTriggering(submissionId);
@@ -51,8 +53,9 @@ export default function GradingPendingPage() {
   }
 
   async function triggerAll() {
-    if (items.length === 0) return;
-    if (!window.confirm(`将对全站 ${items.length} 条待阅卷提交重新触发 AI 阅卷，确认继续？`)) return;
+    const retriggerable = items.filter((it) => RETRIGGERABLE.has(it.status));
+    if (retriggerable.length === 0) return;
+    if (!window.confirm(`将对全站 ${retriggerable.length} 条待阅卷提交重新触发 AI 阅卷，确认继续？`)) return;
     setTriggeringAll(true);
     try {
       const res = await fetch('/api/grading/trigger-all', { method: 'POST' });
@@ -70,10 +73,10 @@ export default function GradingPendingPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">待阅卷列表</h1>
+        <h1 className="text-xl font-bold text-gray-900">阅卷管理</h1>
         <button
           onClick={triggerAll}
-          disabled={triggeringAll || items.length === 0}
+          disabled={triggeringAll || items.filter((it) => RETRIGGERABLE.has(it.status)).length === 0}
           className="text-sm bg-brand-600 text-white px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition"
         >
           {triggeringAll ? '触发中...' : '全量触发阅卷'}
@@ -109,20 +112,29 @@ export default function GradingPendingPage() {
                     {it.taskRetryCount > 0 && <span className="ml-1 text-xs text-gray-400">重试 {it.taskRetryCount} 次</span>}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    <button
-                      onClick={() => trigger(it.submissionId)}
-                      disabled={triggering === it.submissionId}
-                      className="text-xs bg-orange-500 text-white px-2.5 py-1 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition"
-                    >
-                      {triggering === it.submissionId ? '触发中...' : '触发阅卷'}
-                    </button>
+                    {it.status === 'ai_graded' ? (
+                      <Link
+                        href={`/admin/review/${it.submissionId}`}
+                        className="text-xs bg-green-600 text-white px-2.5 py-1 rounded-lg hover:bg-green-700 transition"
+                      >
+                        去复核
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => trigger(it.submissionId)}
+                        disabled={triggering === it.submissionId}
+                        className="text-xs bg-orange-500 text-white px-2.5 py-1 rounded-lg hover:bg-orange-600 disabled:opacity-50 transition"
+                      >
+                        {triggering === it.submissionId ? '触发中...' : '触发阅卷'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
-        {items.length === 0 && <p className="text-center text-gray-400 py-12">暂无待阅卷提交</p>}
+        {items.length === 0 && <p className="text-center text-gray-400 py-12">暂无进行中的阅卷任务</p>}
       </div>
     </div>
   );

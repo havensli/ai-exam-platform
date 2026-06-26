@@ -224,3 +224,11 @@ export const examAssignments = pgTable('exam_assignments', {
   assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
   notifiedAt: timestamp('notified_at', { withTimezone: true }),
 }, (t) => [uniqueIndex('exam_assignments_exam_employee_idx').on(t.examId, t.employeeId)]);
+
+export const systemSettings = pgTable('system_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  encrypted: boolean('encrypted').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedBy: uuid('updated_by').references(() => employees.id),
+});

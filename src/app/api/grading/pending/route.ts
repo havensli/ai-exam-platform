@@ -6,6 +6,8 @@ import { ok, err } from '@/lib/api';
 import { RETRIGGERABLE_STATUSES } from '@/lib/grading';
 import { inArray, desc, eq } from 'drizzle-orm';
 
+const GRADING_PIPELINE_STATUSES = [...RETRIGGERABLE_STATUSES, 'ai_graded'] as const;
+
 export async function GET(req: NextRequest) {
   const session = await getSession(req);
   if (!session || !['system_admin', 'exam_creator'].includes(session.role)) {
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
     .from(submissions)
     .innerJoin(exams, eq(submissions.examId, exams.id))
     .innerJoin(employees, eq(submissions.employeeId, employees.id))
-    .where(inArray(submissions.status, [...RETRIGGERABLE_STATUSES]))
+    .where(inArray(submissions.status, [...GRADING_PIPELINE_STATUSES]))
     .orderBy(desc(submissions.submittedAt));
 
   const submissionIds = subs.map((s) => s.submissionId);

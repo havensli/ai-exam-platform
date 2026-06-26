@@ -87,6 +87,10 @@ def get_auto_check_results(ctx: RunContext[GradingContext]) -> list[dict[str, An
     return ctx.deps.auto_check_results
 
 
+MINIMAX_BASE_URL = 'https://api.minimax.chat/v1'
+MINIMAX_MODEL = 'abab6.5s-chat'
+
+
 async def run_grading(
     submission_id: str,
     prompt_version_id: str,
@@ -94,6 +98,8 @@ async def run_grading(
     repo_path: str,
     sandbox_results: list[dict],
     auto_check_results: list[dict],
+    api_key: str | None = None,
+    provider: str = 'anthropic',
 ) -> GradingReport:
     retriever = CodeRetriever(repo_path)
     ctx = GradingContext(
@@ -103,6 +109,14 @@ async def run_grading(
         sandbox_results=sandbox_results,
         auto_check_results=auto_check_results,
     )
-    result = await grading_agent.run(prompt_template, deps=ctx)
+
+    model_override = None
+    if provider == 'minimax' and api_key:
+        from pydantic_ai.models.openai import OpenAIModel
+        from openai import AsyncOpenAI
+        openai_client = AsyncOpenAI(api_key=api_key, base_url=MINIMAX_BASE_URL)
+        model_override = OpenAIModel(MINIMAX_MODEL, openai_client=openai_client)
+
+    result = await grading_agent.run(prompt_template, deps=ctx, model=model_override)
     # pydantic-ai >=1.0: final result is exposed via .output (was .data pre-0.1)
     return result.output
