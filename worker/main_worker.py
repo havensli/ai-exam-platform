@@ -124,8 +124,10 @@ def process_task(conn, task: dict, executor: SandboxExecutor) -> None:
                       r.duration_seconds, r.timed_out, r.oom_killed, r.error))
         conn.commit()
 
-        run_result = next((r for r in results if r.phase == 'run'), None)
-        sandbox_ok = run_result is not None  # grading proceeds even if tests fail
+        clone_result = next((r for r in results if r.phase == 'clone'), None)
+        # Proceed to grading as long as the repo was cloned successfully.
+        # Install/run failures become sandbox context for the LLM to reason about.
+        sandbox_ok = clone_result is not None and clone_result.succeeded
 
         if sandbox_ok:
             with conn.cursor() as cur:

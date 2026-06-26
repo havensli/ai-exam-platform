@@ -97,31 +97,27 @@ class SandboxExecutor:
         work_dir = self._make_work_dir(submission_id)
         results: list[SandboxResult] = []
 
-        try:
-            # Phase 1: clone (runs on host, needs network)
-            clone_result = self._phase_clone(submission_id, repo_url, git_token, work_dir)
-            results.append(clone_result)
-            if not clone_result.succeeded:
-                return results
+        # Phase 1: clone (runs on host, needs network)
+        clone_result = self._phase_clone(submission_id, repo_url, git_token, work_dir)
+        results.append(clone_result)
+        if not clone_result.succeeded:
+            return results
 
-            # Phase 2: install deps (Docker with network, read/write)
-            if install_command:
-                install_result = self._phase_install(
-                    submission_id, install_command, work_dir
-                )
-                results.append(install_result)
-                if not install_result.succeeded:
-                    return results
-
-            # Phase 3: run tests (Docker, fully isolated)
-            run_result = self._phase_run(
-                submission_id, run_command, work_dir, env_vars or {}
+        # Phase 2: install deps (Docker with network, read/write)
+        if install_command:
+            install_result = self._phase_install(
+                submission_id, install_command, work_dir
             )
-            results.append(run_result)
+            results.append(install_result)
+            # Continue to grading even if install fails — LLM receives the failure context
 
-        finally:
-            self._cleanup_work_dir(work_dir)
+        # Phase 3: run tests (Docker, fully isolated)
+        run_result = self._phase_run(
+            submission_id, run_command, work_dir, env_vars or {}
+        )
+        results.append(run_result)
 
+        # Caller (main_worker) is responsible for cleanup after grading uses repo_path
         return results
 
     # ------------------------------------------------------------------
